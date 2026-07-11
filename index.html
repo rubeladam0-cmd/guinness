@@ -1,39 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Guinness Price Map Israel</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-
-html, body {
-    margin:0;
+html,body,#map{
     height:100%;
+    margin:0;
 }
 
-#map {
-    width:100%;
-    height:100vh;
-}
-
-.price-marker {
+.price-marker{
     display:flex;
     align-items:center;
     justify-content:center;
-    color:white;
-    font-weight:bold;
-    font-size:14px;
     width:42px;
     height:42px;
     border-radius:50%;
+    color:white;
+    font-weight:bold;
     border:3px solid white;
-    box-shadow:0 2px 6px rgba(0,0,0,0.5);
+    box-shadow:0 2px 6px #555;
 }
-
 </style>
 
 </head>
@@ -46,132 +35,94 @@ html, body {
 
 <script>
 
-var map = L.map('map').setView([32.08,34.78],10);
+let map = L.map('map').setView([32.08,34.78],10);
 
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap'
-}).addTo(map);
+L.tileLayer(
+'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+ attribution:'© OpenStreetMap'
+}
+).addTo(map);
 
 
 
 fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vR_xfrEwxZmID0a87zlVBAxKp-C1x8mF2D7wTCjcQ1l-4jDM9UOZfkBZnKSgYevcoDAe1JcMdWFqGUD/pub?output=csv")
 
-.then(response => response.text())
+.then(r=>r.text())
 
-.then(csv => {
-
-
-let rows = csv.split("\n");
+.then(csv=>{
 
 
-rows.slice(1).forEach(row => {
+let lines = csv.split("\n");
+
+console.log(lines);
 
 
-    let columns = row.split(",");
+for(let i=1;i<lines.length;i++){
 
 
-    let name = columns[0];
-    let price = columns[1];
-    let website = columns[2];
-    let notes = columns[3];
+let row = lines[i];
 
-    let lat = parseFloat(columns[4]);
-    let lng = parseFloat(columns[5]);
+let data = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
 
 
-    if(!lat || !lng) return;
+if(!data) continue;
 
 
+let name=data[0];
+let price=data[1];
+let website=data[2];
+let notes=data[3];
+let lat=parseFloat(data[4]);
+let lng=parseFloat(data[5]);
 
-    let color = "#f39c12";
 
-
-    if(Number(price) <= 29){
-        color="#27ae60";
-    }
-
-    if(Number(price) >= 38){
-        color="#e74c3c";
-    }
+if(isNaN(lat)||isNaN(lng)) continue;
 
 
 
-    let icon = L.divIcon({
+let color="#f39c12";
 
-        className:"",
-
-        html:
-        `
-        <div class="price-marker" style="background:${color}">
-            ₪${price}
-        </div>
-        `,
-
-        iconSize:[42,42],
-
-        iconAnchor:[21,21]
-
-    });
+if(price<=29) color="#27ae60";
+if(price>=38) color="#e74c3c";
 
 
 
-    let marker = L.marker([lat,lng],{
-        icon:icon
-    }).addTo(map);
+let marker=L.marker([lat,lng],{
+
+icon:L.divIcon({
+
+className:"",
+html:
+`
+<div class="price-marker" style="background:${color}">
+₪${price}
+</div>
+`,
+iconSize:[42,42]
+
+})
+
+}).addTo(map);
 
 
 
-    marker.bindPopup(
+marker.bindPopup(`
+<h3>${name}</h3>
+<b>Guinness:</b> ₪${price}<br><br>
 
-    `
-    <div style="min-width:200px">
+${website ? `<a href="${website}" target="_blank">Website</a><br><br>`:""}
 
-    <h3>${name}</h3>
+${notes ? notes:""}
 
-    <b>Guinness price:</b> ₪${price}
+`);
 
-    <br><br>
-
-
-    ${
-    website 
-    ?
-    `<a href="${website}" target="_blank">
-    🌐 Visit website
-    </a>`
-    :
-    ""
-    }
-
-
-    <br><br>
-
-
-    ${
-    notes
-    ?
-    `<b>Notes:</b><br>${notes}`
-    :
-    ""
-    }
-
-
-    </div>
-
-    `
-
-    );
+}
 
 
 });
-
-
-});
-
 
 </script>
-
 
 </body>
 </html>
