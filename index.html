@@ -40,7 +40,23 @@ html, body {
 
     border:3px solid white;
 
-    box-shadow:0 2px 6px rgba(0,0,0,0.5);
+    box-shadow:0 2px 6px rgba(0,0,0,0.7);
+
+}
+
+.bar-name {
+
+    color:white;
+    font-weight:bold;
+    font-size:12px;
+
+    white-space:nowrap;
+
+    text-shadow:
+    0 1px 3px black,
+    0 1px 3px black;
+
+    margin-bottom:4px;
 
 }
 
@@ -69,11 +85,10 @@ let map = L.map('map').setView([32.08,34.78],10);
 
 
 L.tileLayer(
-'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
 {
-attribution:'© OpenStreetMap'
+attribution:'© OpenStreetMap © CARTO'
 }
-
 ).addTo(map);
 
 
@@ -95,7 +110,6 @@ Papa.parse(csv, {
 
 
 header:true,
-
 
 skipEmptyLines:true,
 
@@ -147,12 +161,8 @@ color="#e74c3c";
 
 
 
-let marker = L.marker(
-[lat,lng],
 
-{
-
-icon:L.divIcon({
+let icon = L.divIcon({
 
 className:"",
 
@@ -160,23 +170,43 @@ html:
 
 `
 
-<div class="price-marker" style="background:${color}">
+<div style="
+display:flex;
+flex-direction:column;
+align-items:center;
+">
 
+<div class="bar-name">
+${name}
+</div>
+
+
+<div class="price-marker" style="background:${color}">
 ₪${price}
+</div>
+
 
 </div>
 
 `,
 
-iconSize:[42,42],
+iconSize:[120,70],
 
-iconAnchor:[21,21]
+iconAnchor:[60,70]
 
-})
+});
 
+
+
+
+
+let marker = L.marker(
+[lat,lng],
+{
+icon:icon
 }
-
 ).addTo(map);
+
 
 
 
@@ -190,28 +220,29 @@ marker.bindPopup(
 <h3>${name}</h3>
 
 
-<b>Guinness:</b> ₪${price}
+<b>Guinness price:</b> ₪${price}
 
 
 <br><br>
 
 
-${website ?
-
+${
+website
+?
 `🌐 <a href="${website}" target="_blank">Website</a><br><br>`
-
 :
+""
+}
 
-""}
 
 
-${notes ?
-
+${
+notes
+?
 `📝 ${notes}`
-
 :
-
-""}
+""
+}
 
 
 </div>
@@ -232,7 +263,6 @@ locations.push([lat,lng]);
 
 
 
-// Zoom map to all bars
 
 if(locations.length > 0){
 
@@ -245,9 +275,7 @@ map.fitBounds(locations);
 }
 
 
-
 });
-
 
 
 });
