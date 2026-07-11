@@ -15,7 +15,9 @@
 html, body {
     margin:0;
     height:100%;
+    font-family:Arial, sans-serif;
 }
+
 
 #map {
     height:100vh;
@@ -23,44 +25,158 @@ html, body {
 }
 
 
+/* Top title */
+
+#title {
+    position:absolute;
+    top:15px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+
+    background:#111;
+    color:white;
+
+    padding:10px 18px;
+
+    border-radius:10px;
+
+    font-size:22px;
+    font-weight:bold;
+
+    box-shadow:0 2px 8px black;
+}
+
+
+/* Search */
+
+#search {
+
+    position:absolute;
+    top:70px;
+    left:15px;
+
+    z-index:1000;
+
+    width:220px;
+
+    padding:10px;
+
+    border-radius:8px;
+
+    border:none;
+
+    font-size:15px;
+
+}
+
+
+/* Panels */
+
+.panel {
+
+    position:absolute;
+
+    z-index:1000;
+
+    background:#111;
+
+    color:white;
+
+    border-radius:10px;
+
+    padding:15px;
+
+    box-shadow:0 2px 8px black;
+
+}
+
+
+#leaderboard {
+
+    top:15px;
+    right:15px;
+
+    width:220px;
+
+}
+
+
+#legend {
+
+    bottom:20px;
+    left:15px;
+
+}
+
+
+#add {
+
+    bottom:20px;
+    right:15px;
+
+    background:#27ae60;
+
+    color:white;
+
+    border:none;
+
+    padding:12px 18px;
+
+    border-radius:10px;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+}
+
+
+
 .price-marker {
 
     display:flex;
+
     align-items:center;
+
     justify-content:center;
 
+
     width:42px;
+
     height:42px;
 
+
     border-radius:50%;
+
 
     color:white;
 
     font-weight:bold;
-    font-size:14px;
+
 
     border:3px solid white;
 
-    box-shadow:0 2px 6px rgba(0,0,0,0.7);
+
+    box-shadow:0 2px 6px rgba(0,0,0,.7);
 
 }
+
 
 
 .bar-name {
 
     color:white;
 
-    font-weight:bold;
-
     font-size:12px;
+
+    font-weight:bold;
 
     white-space:nowrap;
 
     text-shadow:
     0 1px 3px black,
     0 1px 3px black;
-
-    margin-bottom:4px;
 
 }
 
@@ -76,10 +192,49 @@ html, body {
 <div id="map"></div>
 
 
+<div id="title">
+🍺 Guinness Price Map Israel
+</div>
+
+
+<input id="search" placeholder="Search pub...">
+
+
+<div id="leaderboard" class="panel">
+
+<h3>🏆 Cheapest Guinness</h3>
+
+<div id="top5">
+Loading...
+</div>
+
+</div>
+
+
+<div id="legend" class="panel">
+
+<b>Price guide</b>
+<br><br>
+
+🟢 Under ₪30
+<br>
+🟠 ₪30–37
+<br>
+🔴 ₪38+
+
+</div>
+
+
+<button id="add" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSe5Xak2C2k_g8OrRq67lFKTPc1Pt6Iis5mFSpWh8fLrG3eZ4w/viewform?usp=sharing','_blank')">
+
+➕ Add a Guinness price
+
+</button>
+
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
 
 
 <script>
@@ -98,21 +253,14 @@ attribution:'© OpenStreetMap © CARTO'
 
 
 
-let locations = [];
+let bars=[];
 
-let markers = [];
-
-
-
-let showNames = false;
-
+let markers=[];
 
 
 fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vR_xfrEwxZmID0a87zlVBAxKp-C1x8mF2D7wTCjcQ1l-4jDM9UOZfkBZnKSgYevcoDAe1JcMdWFqGUD/pub?output=csv")
 
-
 .then(response => response.text())
-
 
 .then(csv => {
 
@@ -147,9 +295,7 @@ let lng = Number(place["Longitude"]);
 
 
 
-
 if(!lat || !lng) return;
-
 
 
 
@@ -157,86 +303,119 @@ let color="#f39c12";
 
 
 if(price <= 29){
+
 color="#27ae60";
+
 }
 
 
 if(price >= 38){
+
 color="#e74c3c";
+
 }
 
+
+
+let bar = {
+
+name:name,
+
+price:price,
+
+website:website,
+
+notes:notes,
+
+lat:lat,
+
+lng:lng,
+
+color:color
+
+};
+
+
+bars.push(bar);
 
 
 
 let marker = L.marker(
 [lat,lng],
+
 {
-icon:createIcon(name,price,color,false)
+
+icon:createIcon(bar,false)
+
 }
+
 ).addTo(map);
 
 
 
+marker.bindPopup(`
 
-marker.bindPopup(
-
-`
+<div>
 
 <h3>${name}</h3>
 
-<b>Guinness:</b> ₪${price}
+
+<b>Guinness price:</b> ₪${price}
 
 <br><br>
 
+
 ${website ?
-`🌐 <a href="${website}" target="_blank">Website</a><br><br>`
+
+`🌐 <a href="${website}" target="_blank">
+Website
+</a><br><br>`
+
 :
+
 ""}
+
 
 
 ${notes ?
+
 `📝 ${notes}`
+
 :
+
 ""}
 
-`
 
-);
+
+</div>
+
+`);
 
 
 
 markers.push({
+
 marker:marker,
-name:name,
-price:price,
-color:color
-});
 
-
-
-locations.push([lat,lng]);
-
-
+bar:bar
 
 });
 
 
 
-if(locations.length){
-
-map.fitBounds(locations);
-
-}
+});
 
 
 
-updateLabels();
+updateLeaderboard();
+
+
+fitMap();
 
 
 
 }
 
-
 });
 
 
@@ -246,7 +425,9 @@ updateLabels();
 
 
 
-function createIcon(name,price,color,showName){
+
+function createIcon(bar,showName){
+
 
 
 return L.divIcon({
@@ -266,9 +447,13 @@ align-items:center;
 ${showName ?
 
 `
+
 <div class="bar-name">
-${name}
+
+${bar.name}
+
 </div>
+
 `
 
 :
@@ -279,8 +464,10 @@ ${name}
 
 
 
-<div class="price-marker" style="background:${color}">
-₪${price}
+<div class="price-marker" style="background:${bar.color}">
+
+₪${bar.price}
+
 </div>
 
 
@@ -300,13 +487,84 @@ iconAnchor:[60,70]
 
 
 
+function fitMap(){
+
+
+let points = bars.map(function(bar){
+
+return [bar.lat,bar.lng];
+
+});
+
+
+if(points.length){
+
+map.fitBounds(points);
+
+}
+
+
+}
+
+
+
+
+function updateLeaderboard(){
+
+
+let sorted = [...bars].sort(function(a,b){
+
+return a.price-b.price;
+
+});
+
+
+let html="";
+
+
+sorted.slice(0,5).forEach(function(bar,index){
+
+
+html +=
+
+`
+
+<div>
+
+<b>${index+1}. ${bar.name}</b>
+
+<br>
+
+₪${bar.price}
+
+</div>
+
+<br>
+
+`;
+
+
+});
+
+
+document.getElementById("top5").innerHTML=html;
+
+
+}
+
+
+
+
+
+// Show names only when zoomed in
+
 function updateLabels(){
 
 
 let zoom = map.getZoom();
 
 
-let show = zoom >= 13;
+let showNames = zoom >= 13;
 
 
 
@@ -314,12 +572,12 @@ markers.forEach(function(item){
 
 
 item.marker.setIcon(
+
 createIcon(
-item.name,
-item.price,
-item.color,
-show
+item.bar,
+showNames
 )
+
 );
 
 
@@ -330,10 +588,52 @@ show
 
 
 
-
 map.on("zoomend", function(){
 
 updateLabels();
+
+});
+
+
+
+
+// Search function
+
+document.getElementById("search").addEventListener("input", function(){
+
+
+let text = this.value.toLowerCase();
+
+
+markers.forEach(function(item){
+
+
+let name = item.bar.name.toLowerCase();
+
+
+if(text && name.includes(text)){
+
+
+item.marker.openPopup();
+
+
+map.setView(
+
+[
+item.bar.lat,
+item.bar.lng
+],
+
+15
+
+);
+
+
+}
+
+
+});
+
 
 });
 
