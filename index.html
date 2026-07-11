@@ -22,6 +22,7 @@ html, body {
     width:100%;
 }
 
+
 .price-marker {
 
     display:flex;
@@ -44,10 +45,13 @@ html, body {
 
 }
 
+
 .bar-name {
 
     color:white;
+
     font-weight:bold;
+
     font-size:12px;
 
     white-space:nowrap;
@@ -59,6 +63,7 @@ html, body {
     margin-bottom:4px;
 
 }
+
 
 </style>
 
@@ -94,6 +99,12 @@ attribution:'© OpenStreetMap © CARTO'
 
 
 let locations = [];
+
+let markers = [];
+
+
+
+let showNames = false;
 
 
 
@@ -142,27 +153,103 @@ if(!lat || !lng) return;
 
 
 
-let color = "#f39c12";
+let color="#f39c12";
 
 
 if(price <= 29){
-
 color="#27ae60";
-
 }
 
 
 if(price >= 38){
-
 color="#e74c3c";
-
 }
 
 
 
 
+let marker = L.marker(
+[lat,lng],
+{
+icon:createIcon(name,price,color,false)
+}
+).addTo(map);
 
-let icon = L.divIcon({
+
+
+
+marker.bindPopup(
+
+`
+
+<h3>${name}</h3>
+
+<b>Guinness:</b> ₪${price}
+
+<br><br>
+
+${website ?
+`🌐 <a href="${website}" target="_blank">Website</a><br><br>`
+:
+""}
+
+
+${notes ?
+`📝 ${notes}`
+:
+""}
+
+`
+
+);
+
+
+
+markers.push({
+marker:marker,
+name:name,
+price:price,
+color:color
+});
+
+
+
+locations.push([lat,lng]);
+
+
+
+});
+
+
+
+if(locations.length){
+
+map.fitBounds(locations);
+
+}
+
+
+
+updateLabels();
+
+
+
+}
+
+
+});
+
+
+});
+
+
+
+
+
+function createIcon(name,price,color,showName){
+
+
+return L.divIcon({
 
 className:"",
 
@@ -176,9 +263,20 @@ flex-direction:column;
 align-items:center;
 ">
 
+${showName ?
+
+`
 <div class="bar-name">
 ${name}
 </div>
+`
+
+:
+
+""
+
+}
+
 
 
 <div class="price-marker" style="background:${color}">
@@ -197,88 +295,48 @@ iconAnchor:[60,70]
 });
 
 
-
-
-
-let marker = L.marker(
-[lat,lng],
-{
-icon:icon
-}
-).addTo(map);
-
-
-
-
-
-marker.bindPopup(
-
-`
-
-<div style="font-size:15px">
-
-<h3>${name}</h3>
-
-
-<b>Guinness price:</b> ₪${price}
-
-
-<br><br>
-
-
-${
-website
-?
-`🌐 <a href="${website}" target="_blank">Website</a><br><br>`
-:
-""
 }
 
 
 
-${
-notes
-?
-`📝 ${notes}`
-:
-""
-}
+
+function updateLabels(){
 
 
-</div>
+let zoom = map.getZoom();
 
-`
 
+let show = zoom >= 13;
+
+
+
+markers.forEach(function(item){
+
+
+item.marker.setIcon(
+createIcon(
+item.name,
+item.price,
+item.color,
+show
+)
 );
 
 
-
-
-locations.push([lat,lng]);
-
-
-
 });
 
-
-
-
-
-if(locations.length > 0){
-
-map.fitBounds(locations);
 
 }
 
 
 
-}
 
+map.on("zoomend", function(){
+
+updateLabels();
 
 });
 
-
-});
 
 
 </script>
