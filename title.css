@@ -1,0 +1,30 @@
+#title {
+
+    position:absolute;
+    top:15px;
+    left:50%;
+    transform:translateX(-50%);
+
+    z-index:1000;
+
+    background:#111;
+
+    color:white;
+
+    padding:8px 18px;
+
+    border-radius:12px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    display:flex;
+
+    align-items:center;
+
+    box-shadow:0 2px 8px black;
+
+    white-space:nowrap;
+
+}
