@@ -102,6 +102,64 @@ html, body {
 }
 
 
+#leaderboard-toggle {
+
+    display:none;
+
+}
+
+
+@media (max-width:600px){
+
+    #leaderboard {
+
+        display:none;
+
+        top:70px;
+        right:10px;
+
+        width:220px;
+
+    }
+
+
+    #leaderboard.open {
+
+        display:block;
+
+    }
+
+
+    #leaderboard-toggle {
+
+        display:block;
+
+        position:absolute;
+
+        top:15px;
+        right:15px;
+
+        z-index:1000;
+
+        background:#111;
+
+        color:white;
+
+        border:none;
+
+        padding:10px 14px;
+
+        border-radius:10px;
+
+        font-size:14px;
+
+        box-shadow:0 2px 8px black;
+
+    }
+
+}
+
+
 #legend {
 
     bottom:20px;
@@ -199,7 +257,10 @@ html, body {
 
 <input id="search" placeholder="Search pub...">
 
-
+<button id="leaderboard-toggle">
+🏆 Top 5
+</button>
+    
 <div id="leaderboard" class="panel">
 
 <h3>🏆 Cheapest Guinness</h3>
