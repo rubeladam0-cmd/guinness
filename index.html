@@ -1,128 +1,261 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Guinness Price Map Israel</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-html,body,#map{
-    height:100%;
+
+html, body {
     margin:0;
+    height:100%;
 }
 
-.price-marker{
+#map {
+    height:100vh;
+    width:100%;
+}
+
+.price-marker {
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     width:42px;
     height:42px;
+
     border-radius:50%;
+
     color:white;
+
     font-weight:bold;
+    font-size:14px;
+
     border:3px solid white;
-    box-shadow:0 2px 6px #555;
+
+    box-shadow:0 2px 6px rgba(0,0,0,0.5);
+
 }
+
 </style>
 
 </head>
 
+
 <body>
+
 
 <div id="map"></div>
 
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+
 
 <script>
 
+
 let map = L.map('map').setView([32.08,34.78],10);
+
+
 
 L.tileLayer(
 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
- attribution:'© OpenStreetMap'
+attribution:'© OpenStreetMap'
 }
+
 ).addTo(map);
+
+
+
+let locations = [];
 
 
 
 fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vR_xfrEwxZmID0a87zlVBAxKp-C1x8mF2D7wTCjcQ1l-4jDM9UOZfkBZnKSgYevcoDAe1JcMdWFqGUD/pub?output=csv")
 
-.then(r=>r.text())
 
-.then(csv=>{
-
-
-let lines = csv.split("\n");
-
-console.log(lines);
+.then(response => response.text())
 
 
-for(let i=1;i<lines.length;i++){
+.then(csv => {
 
 
-let row = lines[i];
-
-let data = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+Papa.parse(csv, {
 
 
-if(!data) continue;
+header:true,
 
 
-let name=data[0];
-let price=data[1];
-let website=data[2];
-let notes=data[3];
-let lat=parseFloat(data[4]);
-let lng=parseFloat(data[5]);
+skipEmptyLines:true,
 
 
-if(isNaN(lat)||isNaN(lng)) continue;
+complete:function(results){
 
 
 
-let color="#f39c12";
-
-if(price<=29) color="#27ae60";
-if(price>=38) color="#e74c3c";
+results.data.forEach(function(place){
 
 
 
-let marker=L.marker([lat,lng],{
+let name = place["שם הבר"];
 
-icon:L.divIcon({
+let price = Number(place["מחיר הגינס"]);
 
-className:"",
-html:
-`
-<div class="price-marker" style="background:${color}">
-₪${price}
-</div>
-`,
-iconSize:[42,42]
+let website = place["אתר"];
 
-})
+let notes = place["הערות"];
 
-}).addTo(map);
+let lat = Number(place["Latitude"]);
+
+let lng = Number(place["Longitude"]);
 
 
 
-marker.bindPopup(`
-<h3>${name}</h3>
-<b>Guinness:</b> ₪${price}<br><br>
 
-${website ? `<a href="${website}" target="_blank">Website</a><br><br>`:""}
+if(!lat || !lng) return;
 
-${notes ? notes:""}
 
-`);
+
+
+let color = "#f39c12";
+
+
+if(price <= 29){
+
+color="#27ae60";
 
 }
 
 
+if(price >= 38){
+
+color="#e74c3c";
+
+}
+
+
+
+
+let marker = L.marker(
+[lat,lng],
+
+{
+
+icon:L.divIcon({
+
+className:"",
+
+html:
+
+`
+
+<div class="price-marker" style="background:${color}">
+
+₪${price}
+
+</div>
+
+`,
+
+iconSize:[42,42],
+
+iconAnchor:[21,21]
+
+})
+
+}
+
+).addTo(map);
+
+
+
+
+marker.bindPopup(
+
+`
+
+<div style="font-size:15px">
+
+<h3>${name}</h3>
+
+
+<b>Guinness:</b> ₪${price}
+
+
+<br><br>
+
+
+${website ?
+
+`🌐 <a href="${website}" target="_blank">Website</a><br><br>`
+
+:
+
+""}
+
+
+${notes ?
+
+`📝 ${notes}`
+
+:
+
+""}
+
+
+</div>
+
+`
+
+);
+
+
+
+
+locations.push([lat,lng]);
+
+
+
 });
+
+
+
+
+// Zoom map to all bars
+
+if(locations.length > 0){
+
+map.fitBounds(locations);
+
+}
+
+
+
+}
+
+
+
+});
+
+
+
+});
+
 
 </script>
 
+
 </body>
+
 </html>
