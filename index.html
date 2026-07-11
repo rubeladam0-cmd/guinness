@@ -3,30 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guinness Price Map</title>
+
+<title>Guinness Price Map Israel</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
+
 html, body {
-    margin: 0;
-    height: 100%;
+    margin:0;
+    height:100%;
 }
 
 #map {
-    width: 100%;
-    height: 100vh;
+    width:100%;
+    height:100vh;
 }
 
-.price-label{
-    background:#111;
+.price-marker {
+    display:flex;
+    align-items:center;
+    justify-content:center;
     color:white;
-    border-radius:6px;
-    padding:3px 6px;
     font-weight:bold;
     font-size:14px;
-    border:2px solid white;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:3px solid white;
+    box-shadow:0 2px 6px rgba(0,0,0,0.5);
 }
+
 </style>
 
 </head>
@@ -39,102 +46,132 @@ html, body {
 
 <script>
 
-var map = L.map('map').setView([31.7683,35.2137],8);
+var map = L.map('map').setView([32.08,34.78],10);
+
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'© OpenStreetMap'
 }).addTo(map);
 
+
+
 fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vR_xfrEwxZmID0a87zlVBAxKp-C1x8mF2D7wTCjcQ1l-4jDM9UOZfkBZnKSgYevcoDAe1JcMdWFqGUD/pub?output=csv")
+
 .then(response => response.text())
-.then(data => {
 
-    let rows = data.split("\n").slice(1);
+.then(csv => {
 
-    rows.forEach(row => {
 
-        let columns = row.split(",");
+let rows = csv.split("\n");
 
-        let name = columns[0];
-        let price = columns[1];
-        let website = columns[2];
-        let notes = columns[3];
-        let lat = parseFloat(columns[4]);
-        let lng = parseFloat(columns[5]);
 
-        let color = "orange";
+rows.slice(1).forEach(row => {
 
-        if(price <= 29){
-            color = "green";
-        }
-        else if(price >= 38){
-            color = "red";
-        }
 
-        let marker = L.marker([lat,lng],{
-    icon:L.divIcon({
+    let columns = row.split(",");
+
+
+    let name = columns[0];
+    let price = columns[1];
+    let website = columns[2];
+    let notes = columns[3];
+
+    let lat = parseFloat(columns[4]);
+    let lng = parseFloat(columns[5]);
+
+
+    if(!lat || !lng) return;
+
+
+
+    let color = "#f39c12";
+
+
+    if(Number(price) <= 29){
+        color="#27ae60";
+    }
+
+    if(Number(price) >= 38){
+        color="#e74c3c";
+    }
+
+
+
+    let icon = L.divIcon({
+
         className:"",
+
         html:
-`<div style="
-background:${color};
-color:white;
-width:38px;
-height:38px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:bold;
-font-size:14px;
-border:3px solid white;
-box-shadow:0 2px 6px rgba(0,0,0,0.5);">
-₪${price}
-</div>`
-    })
-})
-.addTo(map);
+        `
+        <div class="price-marker" style="background:${color}">
+            ₪${price}
+        </div>
+        `,
 
-marker.bindPopup(
-`
-<div style="font-size:15px">
-<h3>${name}</h3>
+        iconSize:[42,42],
 
-<b>מחיר הגינס:</b> ₪${price}<br><br>
-
-${website ? 
-`🌐 <a href="${website}" target="_blank">Website</a><br><br>`
-:
-""}
-
-${notes ?
-`📝 ${notes}`
-:
-""}
-
-</div>
-`
-);
+        iconAnchor:[21,21]
 
     });
 
-});
 
-places.forEach(function(place){
 
-    L.marker([place.lat,place.lng]).addTo(map)
-    .bindPopup("<b>"+place.name+"</b><br>"+place.price);
-
-    L.marker([place.lat,place.lng],{
-        icon:L.divIcon({
-            className:"",
-            html:'<div class="price-label">'+place.price+'</div>',
-            iconSize:[40,20]
-        })
+    let marker = L.marker([lat,lng],{
+        icon:icon
     }).addTo(map);
 
+
+
+    marker.bindPopup(
+
+    `
+    <div style="min-width:200px">
+
+    <h3>${name}</h3>
+
+    <b>Guinness price:</b> ₪${price}
+
+    <br><br>
+
+
+    ${
+    website 
+    ?
+    `<a href="${website}" target="_blank">
+    🌐 Visit website
+    </a>`
+    :
+    ""
+    }
+
+
+    <br><br>
+
+
+    ${
+    notes
+    ?
+    `<b>Notes:</b><br>${notes}`
+    :
+    ""
+    }
+
+
+    </div>
+
+    `
+
+    );
+
+
 });
 
+
+});
+
+
 </script>
+
 
 </body>
 </html>
